@@ -45,7 +45,7 @@ int manejarRespuesta(char *opcionIngresada){
 	int resultado = 1;
 
 	if(strcmp (opcionIngresada,opcion1) == 0){
-		printf ( " Conectandose con el servidor \n");
+		conectarseAlServidor();
 	}else{
 		printf ( " Opcion invalida. \n");
 		resultado = -1;
