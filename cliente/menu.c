@@ -1,57 +1,59 @@
-#include <stdio.h>
+
 /*
  * menu.c
  *
- *  Created on: Oct 11, 2014
+ *  Created on: Oct 12, 2014
  *      Author: nicolas
  */
 
 
 
-void imprimirMenu(){
+int imprimirMenuPrincipal(char *opcionIngresada){
+    /*
+     * Imprime El menu principal.
+     * */
 
-	pantalla_principal();
+	printf ( "1 - . Para Conectarse con el servidor, presione 1 (UNO) \n" );
 
+	fgets ( opcionIngresada , 2 , stdin );
+
+	//printf ( "Valor ingresado %s \n",opcionIngresada );
+
+	return 1;
 }
 
-int pantalla_principal ()
-{
-    int resul;
-    char elegido[4];
 
-    printf ( "Usuario");
-    printf ( "----------------Menu Principal--------------\n" );
-    printf ( "Por favor, ingrese el número de la opción deseada y luego presione la tecla ENTER:\n\n" );
-    printf ( "\t3. Para ELIMINAR TODOS sus links, presione 3 (TRES) \n" );
-    printf ( "\t4. Para AGREGAR UN NUEVO LINK, presione 4 (CUATRO) \n" );
-    printf ( "\t5. Para MODIFICAR UN LINK, presion 5 (CINCO) \n" );
-    printf ( "\t6. Para ELIMINAR UN LINK, presione 6 (SEIS) \n" );
-    printf ( "\t7. Para OBTENER TODOS SUS LINKS, presione 7 (SIETE) \n" );
-    printf ( "\t8. Para hacer un LOGOUT, presione 8 (OCHO) \n" );
-    printf ( "\t9. Si desea hacer SALIR, presione 9 (NUEVE) \n\n" );
-    printf ( "Opción: " );
-    fgets ( elegido , 3 , stdin );
-    elegido[strlen ( elegido ) - 1] = '\0';
-    resul = atoi ( elegido );
-    return (resul);
+int validarOpcionIngresada(char *opcionIngresada){
+	/*
+	char valoresPermitidos[2]={"1"};
+
+	char *pContenido;
+	pContenido=strchr(valoresPermitidos,opcionIngresada[1]);
+
+	if(!pContenido){
+		printf ( "Valor ingresado NO permitido \n");
+	}else{
+		printf ( " OK \n");
+	}*/
+
+	return 1;
 }
 
-/*
-static void show_help(char **argv)
-{
-    printf
-    (
-        "Streaming Server v 0.1\n\n"
-        "  -h            Muestra esta ayuda.\n"
-        "  -f <archivo>  Especifica el archivo a servir (Path absoluto).\n"
-        "  -p <puerto>   Especifica el puerto para escuchar.\n"
-        "  -d            Iniciar en modo DAEMON (por defecto es en modo consola).\n\n"
-        "Uso:\n"
-        "   %s -f streaming.wav\n",
-        argv[0]
-    );
 
-    exit(0);
+int manejarRespuesta(char *opcionIngresada){
+	char opcion1[] ="1";
+	int resultado = 1;
+
+	if(strcmp (opcionIngresada,opcion1) == 0){
+		printf ( " Conectandose con el servidor \n");
+	}else{
+		printf ( " Opcion invalida. \n");
+		resultado = -1;
+	}
+
+	return resultado;
 }
 
-*/
+
+
+
