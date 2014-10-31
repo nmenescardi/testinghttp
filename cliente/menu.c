@@ -1,11 +1,4 @@
 #include <stdio.h>
-/*
- * menu.c
- *
- *  Created on: Oct 12, 2014
- *      Author: nicolas
- */
-
 
 
 int imprimirMenuPrincipal(char *opcionIngresada){

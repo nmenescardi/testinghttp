@@ -1,12 +1,5 @@
 #include <stdio.h>
 #include "menu.c"
-#include "socket.c"
-/*
- * main.c
- *
- *  Created on: Oct 12, 2014
- *      Author: nicolas
- */
 
 int main(int argc, char *argv[])
 {
@@ -17,9 +10,9 @@ int main(int argc, char *argv[])
 
 	while(opcionCorrecta!=1){
 
-		imprimirMenuPrincipal(opcionIngresada);
+		imprimirMenuPrincipalServidor(opcionIngresada);
 		//printf ( "Valor ingresado %s \n",opcionIngresada );
 		//validarOpcionIngresada(opcionIngresada);
-		opcionCorrecta=manejarRespuesta(opcionIngresada);
+		opcionCorrecta=manejarRespuestaServidor(opcionIngresada);
 	}
 }
