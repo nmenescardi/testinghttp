@@ -5,13 +5,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define P_SIZE sizeof(struct psuma)
 
-struct psuma {
-	uint16_t v1;
-	uint16_t v2;
-	uint32_t res;
+#define P_SIZE sizeof(struct pmensaje)
+
+struct pmensaje {
+	uint16_t id_mensaje;
+	uint16_t tiempo;
+	uint16_t ip_target;
 };
+
 
 // Función que se encarga de leer un mensaje de aplicacion completo
 // lee exactamente la cantidad de bytes que se pasan en el argumento total:
@@ -40,7 +42,7 @@ int aceptarCliente(){
 	char buffer[P_SIZE];
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
-	struct psuma *suma;
+	struct pmensaje *mensaje;
 
 	servidor.sin_family = AF_INET;
 	servidor.sin_port = htons(4444);
@@ -62,14 +64,19 @@ int aceptarCliente(){
 
 		while ( ( n = leer_mensaje_delServidor ( sdc , buffer , P_SIZE ) ) > 0 ) {
 
-			suma = (struct psuma *) buffer;
+			mensaje = (struct pmensaje *) buffer;
 
-			printf("Recibí desde: %s puerto: %d los valores: v1 %d v2 %d res %d \n", inet_ntoa(cliente.sin_addr), ntohs( cliente.sin_port), ntohs(suma->v1), ntohs(suma->v2), ntohl(suma->res));
+			printf("Recibí desde: %s puerto: %d el id de mensaje: %d \n", inet_ntoa(cliente.sin_addr), ntohs( cliente.sin_port), ntohs(mensaje->id_mensaje));
 
-			suma->res = htonl(ntohs(suma->v1) + ntohs(suma->v2));
+			if(ntohs(mensaje->id_mensaje)==1){
+				mensaje->id_mensaje = htons(3);
+				mensaje->tiempo = htons(22);
+				printf("Se envia el tiempo a esperar: %d, y la ip del target: %d \n", ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
+				send ( sdc , buffer, P_SIZE, 0 );
+			}
 
-			printf("Enviando: v1 %d v2 %d res %d \n", ntohs(suma->v1), ntohs(suma->v2), ntohl(suma->res));
-
+			//Orden de ejecutar el testing.
+			mensaje->id_mensaje = htons(4);
 			send ( sdc , buffer, P_SIZE, 0 );
 		}
 
@@ -79,5 +86,5 @@ int aceptarCliente(){
 
 	close(sd);
 
-		printf ( " Conectandose con el servidor \n");
+
 }
