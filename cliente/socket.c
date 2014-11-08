@@ -83,15 +83,22 @@ int conectarseAlServidor() {
 		n=leer_mensaje(sd, buffer, P_SIZE);
 	}
 
-	//TODO abrir hilo para decrementar timer
-	//TODO si server envie antes de que se termine el timer, cortar el hilo secundario
 
 	printf("Mensaje de cominzo de testing recibido\n");
 	enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
 
 	//enviarle al server el resultado (tiempo de respuesta de la solicitud)
-	mensaje->id_mensaje = htons(2);
-	mensaje->tiempo = htons(timpoRespuestaSolicitudHttp);
+	while(ntohs(mensaje->id_mensaje) != 5){
+
+		mensaje->id_mensaje = htons(2);
+		mensaje->tiempo = htons(timpoRespuestaSolicitudHttp);
+		send(sd, buffer, P_SIZE, 0);
+
+
+		n=leer_mensaje(sd, buffer, P_SIZE);
+	}
+
+	printf("Mensaje de estadisticas completas recibido\n");
 
 	close(sd);
 	return 1;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -7,8 +8,7 @@
 #include <sys/shm.h>
 //#include <iostream.h>
 #include <unistd.h>
-
-#include "header.h"
+#include <signal.h>
 
 #define P_SIZE sizeof(struct pmensaje)
 
@@ -17,6 +17,14 @@ struct pmensaje {
 	uint16_t tiempo;
 	uint16_t ip_target;
 };
+
+
+//void procesar_estadisticas(pmensaje *mensaje){
+void procesar_estadisticas(){
+	printf("algo");
+}
+
+
 
 // Función que se encarga de leer un mensaje de aplicacion completo
 // lee exactamente la cantidad de bytes que se pasan en el argumento total:
@@ -49,6 +57,7 @@ int aceptarCliente() {
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
 	struct pmensaje *mensaje;
+	char *ip_target_global;
 
 	// SHARED MEMORY***************
 	key_t Clave;
@@ -59,20 +68,21 @@ int aceptarCliente() {
 		//cout << "No consigo clave para memoria compartida" << endl;
 		exit(0);
 	}
-	Id_Memoria = shmget (Clave, sizeof(int)*100, 0777 | IPC_CREAT);
-	if (Id_Memoria == -1)
-	{
+	Id_Memoria = shmget(Clave, sizeof(int) * 100, 0777 | IPC_CREAT);
+	if (Id_Memoria == -1) {
 		//cout << "No consigo Id para memoria compartida" << endl;
-		exit (0);
+		exit(0);
 	}
-	int *cantidadDeClientesConectados = (int *)shmat (Id_Memoria, (char *)0, 0);
+	int *cantidadDeClientesConectados =
+			(int *) shmat(Id_Memoria, (char *) 0, 0);
 	*cantidadDeClientesConectados = 0;
-	if (cantidadDeClientesConectados == NULL)
-	{
+	if (cantidadDeClientesConectados == NULL) {
 		//cout << "No consigo memoria compartida" << endl;
-		exit (0);
+		exit(0);
 	}
 	// Fin shared memory ***********
+
+	printf("La IP target es: %s \n", ip_target_global);
 
 	servidor.sin_family = AF_INET;
 	servidor.sin_port = htons(4444);
@@ -95,45 +105,63 @@ int aceptarCliente() {
 		pid = fork();
 
 		if (pid == 0) {
-			*cantidadDeClientesConectados = *cantidadDeClientesConectados +1;
-			printf("La cantidad de clientes conectados es: %i \n", *cantidadDeClientesConectados);
+			*cantidadDeClientesConectados = *cantidadDeClientesConectados + 1;
+			printf("La cantidad de clientes conectados es: %i \n",
+					*cantidadDeClientesConectados);
 
-			close(sd);
+			//close(sd);
 
-			while ((n = leer_mensaje_delServidor(sdc, buffer, P_SIZE )) > 0) {
+			leer_mensaje_delServidor(sdc, buffer, P_SIZE );
 
-				mensaje = (struct pmensaje *) buffer;
+			mensaje = (struct pmensaje *) buffer;
 
-				printf("Recibí desde: %s puerto: %d el id de mensaje: %d \n",
-						inet_ntoa(cliente.sin_addr), ntohs(cliente.sin_port),
-						ntohs(mensaje->id_mensaje));
+			printf("Recibí desde: %s puerto: %d el id de mensaje: %d \n",
+					inet_ntoa(cliente.sin_addr), ntohs(cliente.sin_port),
+					ntohs(mensaje->id_mensaje));
 
-				if (ntohs(mensaje->id_mensaje) == 1) {
-					mensaje->id_mensaje = htons(3);
-					mensaje->tiempo = htons(22);
-					printf(
-							"Se envia el tiempo a esperar: %d, y la ip del target: %d \n",
-							ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
-					send(sdc, buffer, P_SIZE, 0);
-				}
-
-				while(1){
-					//Orden de ejecutar el testing.
-					if(*cantidadDeClientesConectados>=maxClientesConectados){
-						mensaje->id_mensaje = htons(4);
-						send(sdc, buffer, P_SIZE, 0);
-						//Debe recibir estad[isticas
-					}
-				}
-
-
-
+			if (ntohs(mensaje->id_mensaje) == 1) {
+				mensaje->id_mensaje = htons(3);
+				mensaje->tiempo = htons(22);
+				printf(
+						"Se envia el tiempo a esperar: %d, y la ip del target: %d \n",
+						ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
+				send(sdc, buffer, P_SIZE, 0);
 			}
 
-			close(sdc);
+			//Ciclo termina cuando se reciben las estadisticas
+			while(1){
+
+				if (*cantidadDeClientesConectados >= maxClientesConectados) {
+					//Orden de ejecutar el testing.
+					mensaje->id_mensaje = htons(4);
+					send(sdc, buffer, P_SIZE, 0);
+
+					//Espero hasta recibir las estadisticas:
+					while (ntohs(mensaje->id_mensaje) != 2) {
+						n=leer_mensaje_delServidor(sdc, buffer, P_SIZE );
+						//printf("%d",ntohs(mensaje->id_mensaje));
+
+					}
+
+					//Se recibieron estadisticas
+					procesar_estadisticas();
+					//procesar_estadisticas(mensaje);
+
+					//Ya se recibieron estadisticas, Termina servidor
+					//*cantidadDeClientesConectados=-1;
+
+					mensaje->id_mensaje = htons(5);
+					send(sdc, buffer, P_SIZE, 0);
+
+					printf("Termina server");
+
+				}
+			}
+
+			//close(sdc);
 			exit(0);
 		} else {
-			close(sdc);
+			//close(sdc);
 			printf("Se creo el proceso %d\n", pid);
 
 		}
@@ -143,6 +171,7 @@ int aceptarCliente() {
 	close(sd);
 
 
-	//void incrementa
 
 }
+
+
