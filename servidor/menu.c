@@ -14,8 +14,12 @@ int imprimirMenuPrincipalServidor(char *opcionIngresada){
      * Imprime El menu principal.
      * */
 
-	//
-	printf ( "1 - . Para Conectarse con el servidor, presione 1 (UNO) \n" );
+	printf ( "\n*********************************************************\n" );
+	printf ( " Testing Servicio HTTP (Servidor). Ver 0.1 . \n" );
+	printf ( "*********************************************************\n\n" );
+	printf ( " Menu Principal: \n" );
+	printf ( " 1 - . Para Arrancar Servidor, presione 1 (UNO) \n\n" );
+	printf ( "*********************************************************\n\n" );
 
 	fgets ( opcionIngresada , 2 , stdin );
 

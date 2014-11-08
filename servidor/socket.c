@@ -1,10 +1,14 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/shm.h>
+//#include <iostream.h>
+#include <unistd.h>
+
+#include "header.h"
 
 #define P_SIZE sizeof(struct pmensaje)
 
@@ -14,35 +18,61 @@ struct pmensaje {
 	uint16_t ip_target;
 };
 
-
 // Función que se encarga de leer un mensaje de aplicacion completo
 // lee exactamente la cantidad de bytes que se pasan en el argumento total:
 
-int leer_mensaje_delServidor ( int sd, char * buffer, int total ) {
+int leer_mensaje_delServidor(int sd, char * buffer, int total) {
 	int bytes;
 	int leido;
 
 	leido = 0;
 	bytes = 1;
-	while ( (leido < total) && (bytes > 0) ) {
+	while ((leido < total) && (bytes > 0)) {
 
-		bytes = recv ( sd , buffer + leido , total - leido , 0);
+		bytes = recv(sd, buffer + leido, total - leido, 0);
 		leido = leido + bytes;
 
 	}
-	return ( leido );
+	return (leido);
 }
 
-int aceptarCliente(){
+int aceptarCliente() {
 
 	int n;
 	int sd;
 	int sdc;
+	int pid;
 	int lon;
+	//int *cantidadDeClientesConectados;
+	int maxClientesConectados = 2;
 	char buffer[P_SIZE];
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
 	struct pmensaje *mensaje;
+
+	// SHARED MEMORY***************
+	key_t Clave;
+	int Id_Memoria;
+	int *Memoria = NULL;
+	Clave = ftok("/bin/ls", 33);
+	if (Clave == -1) {
+		//cout << "No consigo clave para memoria compartida" << endl;
+		exit(0);
+	}
+	Id_Memoria = shmget (Clave, sizeof(int)*100, 0777 | IPC_CREAT);
+	if (Id_Memoria == -1)
+	{
+		//cout << "No consigo Id para memoria compartida" << endl;
+		exit (0);
+	}
+	int *cantidadDeClientesConectados = (int *)shmat (Id_Memoria, (char *)0, 0);
+	*cantidadDeClientesConectados = 0;
+	if (cantidadDeClientesConectados == NULL)
+	{
+		//cout << "No consigo memoria compartida" << endl;
+		exit (0);
+	}
+	// Fin shared memory ***********
 
 	servidor.sin_family = AF_INET;
 	servidor.sin_port = htons(4444);
@@ -55,36 +85,64 @@ int aceptarCliente(){
 		exit(-1);
 	}
 
-	listen ( sd , 5 );
+	listen(sd, 5);
 
 	while (1) {
 
 		lon = sizeof(cliente);
-		sdc = accept ( sd, (struct sockaddr *) &cliente, &lon );
+		sdc = accept(sd, (struct sockaddr *) &cliente, &lon);
 
-		while ( ( n = leer_mensaje_delServidor ( sdc , buffer , P_SIZE ) ) > 0 ) {
+		pid = fork();
 
-			mensaje = (struct pmensaje *) buffer;
+		if (pid == 0) {
+			*cantidadDeClientesConectados = *cantidadDeClientesConectados +1;
+			printf("La cantidad de clientes conectados es: %i \n", *cantidadDeClientesConectados);
 
-			printf("Recibí desde: %s puerto: %d el id de mensaje: %d \n", inet_ntoa(cliente.sin_addr), ntohs( cliente.sin_port), ntohs(mensaje->id_mensaje));
+			close(sd);
 
-			if(ntohs(mensaje->id_mensaje)==1){
-				mensaje->id_mensaje = htons(3);
-				mensaje->tiempo = htons(22);
-				printf("Se envia el tiempo a esperar: %d, y la ip del target: %d \n", ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
-				send ( sdc , buffer, P_SIZE, 0 );
+			while ((n = leer_mensaje_delServidor(sdc, buffer, P_SIZE )) > 0) {
+
+				mensaje = (struct pmensaje *) buffer;
+
+				printf("Recibí desde: %s puerto: %d el id de mensaje: %d \n",
+						inet_ntoa(cliente.sin_addr), ntohs(cliente.sin_port),
+						ntohs(mensaje->id_mensaje));
+
+				if (ntohs(mensaje->id_mensaje) == 1) {
+					mensaje->id_mensaje = htons(3);
+					mensaje->tiempo = htons(22);
+					printf(
+							"Se envia el tiempo a esperar: %d, y la ip del target: %d \n",
+							ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
+					send(sdc, buffer, P_SIZE, 0);
+				}
+
+				while(1){
+					//Orden de ejecutar el testing.
+					if(*cantidadDeClientesConectados>=maxClientesConectados){
+						mensaje->id_mensaje = htons(4);
+						send(sdc, buffer, P_SIZE, 0);
+						//Debe recibir estad[isticas
+					}
+				}
+
+
+
 			}
 
-			//Orden de ejecutar el testing.
-			mensaje->id_mensaje = htons(4);
-			send ( sdc , buffer, P_SIZE, 0 );
-		}
+			close(sdc);
+			exit(0);
+		} else {
+			close(sdc);
+			printf("Se creo el proceso %d\n", pid);
 
-		close (sdc);
+		}
 
 	}
 
 	close(sd);
 
+
+	//void incrementa
 
 }

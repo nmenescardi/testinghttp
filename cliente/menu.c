@@ -6,8 +6,12 @@ int imprimirMenuPrincipal(char *opcionIngresada){
      * Imprime El menu principal.
      * */
 
-	printf ( "1 - . Para Conectarse con el servidor, presione 1 (UNO) \n" );
-
+	printf ( "\n*********************************************************\n" );
+	printf ( " Testing Servicio HTTP (Cliente). Ver 0.1 . \n" );
+	printf ( "*********************************************************\n\n" );
+	printf ( " Menu Principal: \n\n" );
+	printf ( " 1 - . Para Conectarse con el servidor, presione 1 (UNO)\n\n" );
+	printf ( "*********************************************************\n\n" );
 	fgets ( opcionIngresada , 2 , stdin );
 
 	//printf ( "Valor ingresado %s \n",opcionIngresada );
@@ -40,7 +44,7 @@ int manejarRespuesta(char *opcionIngresada){
 	if(strcmp (opcionIngresada,opcion1) == 0){
 		conectarseAlServidor();
 	}else{
-		printf ( " Opcion invalida. \n");
+		printf ( "\n Opcion invalida. \n");
 		resultado = -1;
 	}
 

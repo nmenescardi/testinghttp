@@ -81,12 +81,12 @@ int conectarseAlServidor() {
 	//hilo principal sigue esperando que el server envie la orden de atacar
 	while(ntohs(mensaje->id_mensaje)!=4){
 		n=leer_mensaje(sd, buffer, P_SIZE);
-		printf("Mensaje de cominzo de testing recibido\n");
 	}
 
 	//TODO abrir hilo para decrementar timer
 	//TODO si server envie antes de que se termine el timer, cortar el hilo secundario
 
+	printf("Mensaje de cominzo de testing recibido\n");
 	enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
 
 	//enviarle al server el resultado (tiempo de respuesta de la solicitud)
