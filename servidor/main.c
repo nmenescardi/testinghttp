@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "menu.c"
-#include "header.h"
+
+	//extern char *ip_target_global;
 
 int main(int argc, char *argv[])
 {
@@ -8,9 +9,8 @@ int main(int argc, char *argv[])
 
 	char opcionIngresada[2];
 	int opcionCorrecta=-1;
-	char *ip_target_global;
 
-	ip_target_global=argv [1];
+	//ip_target_global=argv [1];
 
 	while(opcionCorrecta!=1){
 

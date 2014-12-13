@@ -1,1 +1,1 @@
-extern char *ip_target_global;
+char *ip_target_global;

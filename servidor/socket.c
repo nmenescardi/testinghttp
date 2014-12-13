@@ -57,7 +57,7 @@ int aceptarCliente() {
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
 	struct pmensaje *mensaje;
-	char *ip_target_global;
+	//char *ip_target_global;
 
 	// SHARED MEMORY***************
 	key_t Clave;
@@ -82,7 +82,7 @@ int aceptarCliente() {
 	}
 	// Fin shared memory ***********
 
-	printf("La IP target es: %s \n", ip_target_global);
+	//printf("La IP target es: %s \n", ip_target_global);
 
 	servidor.sin_family = AF_INET;
 	servidor.sin_port = htons(4444);

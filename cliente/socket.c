@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <inttypes.h>
+#include <time.h>
+#include "http.c"
 
 #define P_SIZE sizeof(struct pmensaje)
 
@@ -15,6 +17,18 @@ struct pmensaje {
 	uint16_t tiempo;
 	uint16_t ip_target;
 };
+
+char *time_stamp() {
+
+	char *timestamp = (char *) malloc(sizeof(char) * 16);
+	time_t ltime;
+	ltime = time(NULL);
+	struct tm *tm;
+	tm = localtime(&ltime);
+
+	sprintf(timestamp, "%02d%02d%02d", tm->tm_hour, tm->tm_min, tm->tm_sec);
+	return timestamp;
+}
 
 int leer_mensaje(int sd, char* buffer, int total) {
 	int bytes;
@@ -60,7 +74,7 @@ int conectarseAlServidor() {
 
 	mensaje = (struct pmensaje*) buffer;
 
-	printf(" Conectandose con el servidor \n");
+	printf("\n Conectandose con el servidor \n");
 
 	//Se setea el id del primer mensaje, solo para conectarse con el servidor.
 	mensaje->id_mensaje=htons(1);
@@ -68,7 +82,8 @@ int conectarseAlServidor() {
 
 	n=leer_mensaje(sd, buffer, P_SIZE);
 	if(ntohs(mensaje->id_mensaje)==3){
-		printf("El tiempo a esperar es: %d\n", ntohs(mensaje->tiempo));
+		//printf("El tiempo a esperar es: %d\n", ntohs(mensaje->tiempo));
+		printf("\n Conexion con el servidor realizada exitosamente \n");
 
 		//Guardar tiempo en alguna variable global.
 		tiempoDeEspera=ntohs(mensaje->tiempo);
@@ -78,13 +93,13 @@ int conectarseAlServidor() {
 	}
 
 
-	//hilo principal sigue esperando que el server envie la orden de atacar
+	//Sigue esperando que el server envie la orden de atacar
 	while(ntohs(mensaje->id_mensaje)!=4){
 		n=leer_mensaje(sd, buffer, P_SIZE);
 	}
 
 
-	printf("Mensaje de cominzo de testing recibido\n");
+	printf("\n Se recibio mensaje de comienzo de testing  \n");
 	enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
 
 	//enviarle al server el resultado (tiempo de respuesta de la solicitud)
@@ -98,7 +113,8 @@ int conectarseAlServidor() {
 		n=leer_mensaje(sd, buffer, P_SIZE);
 	}
 
-	printf("Mensaje de estadisticas completas recibido\n");
+	printf("\n Se recibio mensaje de estadisticas completas \n");
+	printf("\n Fin de testing. \n");
 
 	close(sd);
 	return 1;
@@ -108,7 +124,24 @@ int conectarseAlServidor() {
 //funcion para enviar solicitud http get (puede ser enviada de cualquier hilo)
 int enviarSolicitudHTTP(uint16_t* timpoRespuestaSolicitudHttp){
 
+	time_t t = time(0);
+	printf(" Timestamp 1: %s\n",time_stamp());
+
+	executeTestingHttp();
+
+	time_t t2 = time(0);
+
+	double dataTimeDiff = difftime(t2,t) * 1000;
+	printf("\n La diferencia de tiempo es: %f \n", dataTimeDiff);
+	printf(" Timestamp 2: %s\n",time_stamp());
+
+	double i = (double) * time_stamp();
+	printf(" Timestamp 3 int: %f\n",i);
+
 	timpoRespuestaSolicitudHttp=555;
-	printf("Se realizo testing satisfactoriamente. El tiempo de respuesta del target es: %hd \n", timpoRespuestaSolicitudHttp);
+	printf("\n Se realizo testing satisfactoriamente. El tiempo de respuesta del target es: %hd \n", timpoRespuestaSolicitudHttp);
 	return 1;
 }
+
+
+
