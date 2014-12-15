@@ -14,7 +14,7 @@
 
 struct pmensaje {
 	uint16_t id_mensaje;
-	uint16_t tiempo;
+	double tiempo;
 	uint16_t ip_target;
 };
 
@@ -123,7 +123,7 @@ int aceptarCliente() {
 				mensaje->id_mensaje = htons(3);
 				mensaje->tiempo = htons(22);
 				printf(
-						"Se envia el tiempo a esperar: %d, y la ip del target: %d \n",
+						"Se envia el tiempo a esperar: %f, y la ip del target: %d \n",
 						ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
 				send(sdc, buffer, P_SIZE, 0);
 			}
@@ -142,6 +142,8 @@ int aceptarCliente() {
 						//printf("%d",ntohs(mensaje->id_mensaje));
 
 					}
+					printf("Id de mensaje: %d \n",	ntohs(mensaje->id_mensaje));
+					printf("\n La diferencia de tiempo fue: %d \n", ntohs(mensaje->tiempo));
 
 					//Se recibieron estadisticas
 					procesar_estadisticas();

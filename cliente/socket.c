@@ -14,21 +14,23 @@
 
 struct pmensaje {
 	uint16_t id_mensaje;
-	uint16_t tiempo;
+	double tiempo;
 	uint16_t ip_target;
 };
 
-char *time_stamp() {
+/*int time_stamp() {
 
-	char *timestamp = (char *) malloc(sizeof(char) * 16);
+	int timestamp;
 	time_t ltime;
 	ltime = time(NULL);
 	struct tm *tm;
 	tm = localtime(&ltime);
+	printf("algo: %i",tm->tm_hour*10000+tm->tm_min*100+tm->tm_sec+tm->tm_mic);
 
-	sprintf(timestamp, "%02d%02d%02d", tm->tm_hour, tm->tm_min, tm->tm_sec);
+	timestamp=tm->tm_hour*10000+tm->tm_min*100+tm->tm_sec;
+	//sprintf(timestamp, "%02d%02d%02d", tm->tm_hour, tm->tm_min, tm->tm_sec);
 	return timestamp;
-}
+}*/
 
 int leer_mensaje(int sd, char* buffer, int total) {
 	int bytes;
@@ -48,9 +50,9 @@ int conectarseAlServidor() {
 	int n;
 	int sd;
 	int lon;
-	uint16_t tiempoDeEspera;
+	double tiempoDeEspera;
 	uint16_t ipTarget;
-	uint16_t timpoRespuestaSolicitudHttp;
+	double timpoRespuestaSolicitudHttp;
 
 	char teclado[512];
 	char buffer[P_SIZE];
@@ -100,13 +102,22 @@ int conectarseAlServidor() {
 
 
 	printf("\n Se recibio mensaje de comienzo de testing  \n");
-	enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
+	//enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
+
+
+	// Se realiza la solicitud HTTP, y se calcula la diferencia de tempo
+	time_t t = time(0);
+	executeTestingHttp();
+	time_t t2 = time(0);
+	double diffTime = difftime(t2,t);
+
 
 	//enviarle al server el resultado (tiempo de respuesta de la solicitud)
 	while(ntohs(mensaje->id_mensaje) != 5){
 
 		mensaje->id_mensaje = htons(2);
-		mensaje->tiempo = htons(timpoRespuestaSolicitudHttp);
+		mensaje->tiempo = htons(diffTime);
+		printf("\n Se envia El tiempo : %f \n", diffTime);
 		send(sd, buffer, P_SIZE, 0);
 
 
@@ -120,28 +131,6 @@ int conectarseAlServidor() {
 	return 1;
 }
 
-
-//funcion para enviar solicitud http get (puede ser enviada de cualquier hilo)
-int enviarSolicitudHTTP(uint16_t* timpoRespuestaSolicitudHttp){
-
-	time_t t = time(0);
-	printf(" Timestamp 1: %s\n",time_stamp());
-
-	executeTestingHttp();
-
-	time_t t2 = time(0);
-
-	double dataTimeDiff = difftime(t2,t) * 1000;
-	printf("\n La diferencia de tiempo es: %f \n", dataTimeDiff);
-	printf(" Timestamp 2: %s\n",time_stamp());
-
-	double i = (double) * time_stamp();
-	printf(" Timestamp 3 int: %f\n",i);
-
-	timpoRespuestaSolicitudHttp=555;
-	printf("\n Se realizo testing satisfactoriamente. El tiempo de respuesta del target es: %hd \n", timpoRespuestaSolicitudHttp);
-	return 1;
-}
 
 
 
