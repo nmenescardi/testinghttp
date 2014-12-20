@@ -9,7 +9,7 @@ char *get_ip(char *host);
 char *build_get_query(char *host, char *page);
 void usage();
 
-#define HOST "google.com"
+#define HOST "eldia.com.ar"
 #define PAGE "/"
 #define PORT 80
 #define USERAGENT "testing HTTTP client 1.0"

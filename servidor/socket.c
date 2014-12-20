@@ -15,7 +15,8 @@
 struct pmensaje {
 	uint16_t id_mensaje;
 	double tiempo;
-	uint16_t ip_target;
+	char nombre_host_target;
+	int cantidadDePeticiones;
 };
 
 
@@ -57,9 +58,11 @@ int aceptarCliente() {
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
 	struct pmensaje *mensaje;
-	//char *ip_target_global;
+	extern char *nombre_host_target;
 
-	// SHARED MEMORY***************
+
+
+	// SHARED MEMORY   para cantidadDeClientesConectados***************
 	key_t Clave;
 	int Id_Memoria;
 	int *Memoria = NULL;
@@ -82,7 +85,33 @@ int aceptarCliente() {
 	}
 	// Fin shared memory ***********
 
-	//printf("La IP target es: %s \n", ip_target_global);
+	// SHARED MEMORY   para tiempoPromedioTotal***************
+		key_t Clave2;
+		int Id_Memoria2;
+		int *Memoria2 = NULL;
+		Clave2 = ftok("/bin/ls", 33);
+		if (Clave2 == -1) {
+			//cout << "No consigo clave para memoria compartida" << endl;
+			exit(0);
+		}
+		Id_Memoria2 = shmget(Clave2, sizeof(int) * 100, 0777 | IPC_CREAT);
+		if (Id_Memoria2 == -1) {
+			//cout << "No consigo Id para memoria compartida" << endl;
+			exit(0);
+		}
+		double *tiempoPromedioTotal =
+				(double *) shmat(Id_Memoria2, (char *) 0, 0);
+		*tiempoPromedioTotal = 0;
+		if (tiempoPromedioTotal == NULL) {
+			//cout << "No consigo memoria compartida" << endl;
+			exit(0);
+		}
+		// Fin shared memory ***********
+
+
+
+
+
 
 	servidor.sin_family = AF_INET;
 	servidor.sin_port = htons(4444);
@@ -122,9 +151,10 @@ int aceptarCliente() {
 			if (ntohs(mensaje->id_mensaje) == 1) {
 				mensaje->id_mensaje = htons(3);
 				mensaje->tiempo = htons(22);
+				mensaje->nombre_host_target = *nombre_host_target;
 				printf(
-						"Se envia el tiempo a esperar: %f, y la ip del target: %d \n",
-						ntohs(mensaje->tiempo), ntohs(mensaje->ip_target));
+						"Se envia el tiempo a esperar: %d, y el nombre del host target: %d \n",
+						ntohs(mensaje->tiempo), mensaje->nombre_host_target);
 				send(sdc, buffer, P_SIZE, 0);
 			}
 
@@ -134,6 +164,9 @@ int aceptarCliente() {
 				if (*cantidadDeClientesConectados >= maxClientesConectados) {
 					//Orden de ejecutar el testing.
 					mensaje->id_mensaje = htons(4);
+
+					//Cantidad de peticiones
+					mensaje->cantidadDePeticiones = htons(17);
 					send(sdc, buffer, P_SIZE, 0);
 
 					//Espero hasta recibir las estadisticas:
@@ -145,8 +178,12 @@ int aceptarCliente() {
 					printf("Id de mensaje: %d \n",	ntohs(mensaje->id_mensaje));
 					printf("\n La diferencia de tiempo fue: %d \n", ntohs(mensaje->tiempo));
 
+					*tiempoPromedioTotal = *tiempoPromedioTotal + ntohs(mensaje->tiempo);
+
+					printf("\n El tiempo promedio total es: %f \n", *tiempoPromedioTotal);
+
 					//Se recibieron estadisticas
-					procesar_estadisticas();
+					//procesar_estadisticas();
 					//procesar_estadisticas(mensaje);
 
 					//Ya se recibieron estadisticas, Termina servidor

@@ -16,6 +16,7 @@ struct pmensaje {
 	uint16_t id_mensaje;
 	double tiempo;
 	uint16_t ip_target;
+	int cantidadDePeticiones;
 };
 
 /*int time_stamp() {
@@ -104,20 +105,29 @@ int conectarseAlServidor() {
 	printf("\n Se recibio mensaje de comienzo de testing  \n");
 	//enviarSolicitudHTTP(timpoRespuestaSolicitudHttp);
 
-
+	int i = 0;
+	double diffTime = 0;
+	int cantidadDePeticiones = ntohs(mensaje->cantidadDePeticiones);
 	// Se realiza la solicitud HTTP, y se calcula la diferencia de tempo
-	time_t t = time(0);
-	executeTestingHttp();
-	time_t t2 = time(0);
-	double diffTime = difftime(t2,t);
 
+	for(i=0;i<=cantidadDePeticiones;i++){
+
+		time_t t = time(0);
+		executeTestingHttp();
+		time_t t2 = time(0);
+		diffTime = diffTime + difftime(t2,t);
+	}
+
+	double promedioDeTiempo = diffTime/(double)cantidadDePeticiones;
+	printf("\n La cantidad de peticiones realizadas fueron : %i \n", cantidadDePeticiones);
+	printf("\n El promedio de tiempo es: %f \n", promedioDeTiempo);
 
 	//enviarle al server el resultado (tiempo de respuesta de la solicitud)
 	while(ntohs(mensaje->id_mensaje) != 5){
 
 		mensaje->id_mensaje = htons(2);
-		mensaje->tiempo = htons(diffTime);
-		printf("\n Se envia El tiempo : %f \n", diffTime);
+		mensaje->tiempo = htons(promedioDeTiempo);
+		printf("\n Se envia El tiempo : %f \n", promedioDeTiempo);
 		send(sd, buffer, P_SIZE, 0);
 
 
