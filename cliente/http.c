@@ -24,10 +24,11 @@ int executeTestingHttp()
   char buf[BUFSIZ+1];
   char *host;
   char *page;
+  extern char nombre_host_target[1024];
 
 
   page = PAGE;
-  host = HOST;
+  host = nombre_host_target;
   sock = create_tcp_socket();
   ip = get_ip(host);
   printf ( "\n*********************************************************\n" );

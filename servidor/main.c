@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include "menu.c"
 
-	 char *nombre_host_target;
+	 char nombre_host_target[1024];
 	 char *cant_max_clientes_conectados;
 	 char *cant_peticiones_http_por_cliente;
 
 int main(int argc, char *argv[])
 {
-//TODO ver los parametros que recibe
 
 	char opcionIngresada[2];
 	int opcionCorrecta=-1;
 
-	nombre_host_target=argv [1];
+	strcpy(nombre_host_target, argv [1]);
+	//nombre_host_target=argv [1];
 	cant_max_clientes_conectados=argv [2];
 	cant_peticiones_http_por_cliente=argv [3];
 

@@ -2,7 +2,7 @@
 #include "menu.c"
 #include "socket.c"
 
-char nombre_host_target_global;
+char nombre_host_target[1024];
 
 int main() {
 

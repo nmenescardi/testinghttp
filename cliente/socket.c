@@ -15,7 +15,7 @@
 struct pmensaje {
 	uint16_t id_mensaje;
 	double tiempo;
-	uint16_t ip_target;
+	char nombre_host_target[1024];
 	int cantidadDePeticiones;
 };
 
@@ -51,9 +51,9 @@ int conectarseAlServidor() {
 	int n;
 	int sd;
 	int lon;
-	double tiempoDeEspera;
-	uint16_t ipTarget;
+
 	double timpoRespuestaSolicitudHttp;
+	extern char nombre_host_target[1024];
 
 	char teclado[512];
 	char buffer[P_SIZE];
@@ -85,14 +85,11 @@ int conectarseAlServidor() {
 
 	n=leer_mensaje(sd, buffer, P_SIZE);
 	if(ntohs(mensaje->id_mensaje)==3){
-		//printf("El tiempo a esperar es: %d\n", ntohs(mensaje->tiempo));
+
 		printf("\n Conexion con el servidor realizada exitosamente \n");
 
-		//Guardar tiempo en alguna variable global.
-		tiempoDeEspera=ntohs(mensaje->tiempo);
-
-		//Guardar ip target en otra variable global.
-		ipTarget=ntohs(mensaje->ip_target);
+		strcpy(nombre_host_target, mensaje->nombre_host_target);
+		printf("El nombre del host target es: %s \n\n",nombre_host_target);
 	}
 
 

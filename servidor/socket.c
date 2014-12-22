@@ -15,7 +15,7 @@
 struct pmensaje {
 	uint16_t id_mensaje;
 	double tiempo;
-	char nombre_host_target;
+	char nombre_host_target[1024];
 	int cantidadDePeticiones;
 };
 
@@ -52,14 +52,18 @@ int aceptarCliente() {
 	int sdc;
 	int pid;
 	int lon;
-	//int *cantidadDeClientesConectados;
-	int maxClientesConectados = 2;
+
 	char buffer[P_SIZE];
 	struct sockaddr_in servidor;
 	struct sockaddr_in cliente;
 	struct pmensaje *mensaje;
-	extern char *nombre_host_target;
+	extern char nombre_host_target[1024];
+	extern char *cant_peticiones_http_por_cliente;
+	int cant_peticiones;
+	extern char *cant_max_clientes_conectados;
+	int maxClientesConectados;
 
+	maxClientesConectados=atoi(cant_max_clientes_conectados);
 
 
 	// SHARED MEMORY   para cantidadDeClientesConectados***************
@@ -150,11 +154,8 @@ int aceptarCliente() {
 
 			if (ntohs(mensaje->id_mensaje) == 1) {
 				mensaje->id_mensaje = htons(3);
-				mensaje->tiempo = htons(22);
-				mensaje->nombre_host_target = *nombre_host_target;
-				printf(
-						"Se envia el tiempo a esperar: %d, y el nombre del host target: %d \n",
-						ntohs(mensaje->tiempo), mensaje->nombre_host_target);
+				strcpy(mensaje->nombre_host_target, nombre_host_target);
+				printf("Se envia el nombre del host target: %s \n",	mensaje->nombre_host_target);
 				send(sdc, buffer, P_SIZE, 0);
 			}
 
@@ -166,7 +167,11 @@ int aceptarCliente() {
 					mensaje->id_mensaje = htons(4);
 
 					//Cantidad de peticiones
-					mensaje->cantidadDePeticiones = htons(17);
+
+
+					cant_peticiones= atoi(cant_peticiones_http_por_cliente);
+					printf("La cantidad de peticiones HTTP enviadas es: %i \n",	cant_peticiones);
+					mensaje->cantidadDePeticiones = htons(cant_peticiones);
 					send(sdc, buffer, P_SIZE, 0);
 
 					//Espero hasta recibir las estadisticas:
